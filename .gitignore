@@ -71,4 +71,4 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 
 # Artifacts generated during CI tests
-/[Aa]artifacts
+/[Aa]rtifacts/
