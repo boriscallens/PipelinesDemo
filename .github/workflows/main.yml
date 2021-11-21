@@ -1,7 +1,6 @@
 # Test on merges to main
-# Build for different platforms and push to assets
-# If a tag was used, push to the relevant channels
-name: main
+# When tests succeeds: increments the tag
+name: main-test
 
 on:
   push:
@@ -11,23 +10,15 @@ on:
 
 jobs:
   buildForAllSupportedPlatforms:
-    name: Build for ${{ matrix.targetPlatform }}
+    name: Test main
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        targetPlatform:
-          - StandaloneOSX # Build a macOS standalone (Intel 64-bit).
-          - StandaloneWindows # Build a Windows standalone.
-          - StandaloneWindows64 # Build a Windows 64-bit standalone.
-          - StandaloneLinux64 # Build a Linux 64-bit standalone.
-          - iOS # Build an iOS player.
-          - Android # Build an Android .apk standalone app.
-          - WebGL # WebGL.
+
     steps:
       # Checkout (without LFS)
       - name: Checkout repository
         uses: actions/checkout@v2
+        with:
+          fetch-depth: '0'
 
       # Git LFS
       - name: Create LFS file list
@@ -62,16 +53,10 @@ jobs:
         with:
           githubToken: ${{ secrets.GITHUB_TOKEN }}
 
-      # Build
-      - name: Build project
-        uses: game-ci/unity-builder@v2
+      # Tag
+      - name: Bump version and push tag
+        uses: anothrNick/github-tag-action@1.36.0
         env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-        with:
-          targetPlatform: ${{ matrix.targetPlatform }}
-
-      # Output
-      - uses: actions/upload-artifact@v2
-        with:
-          name: Build-${{ matrix.targetPlatform }}
-          path: build/${{ matrix.targetPlatform }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WITH_V: true
+          DEFAULT_BUMP: p
