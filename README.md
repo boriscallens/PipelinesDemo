@@ -6,4 +6,5 @@ Using a template Unity project for a bit of substance.
 # Sources
   - https://game.ci/docs
   - https://github.com/features/actions
-  - 
+  - https://github.com/KikimoraGames/itch-publish
+  - https://github.com/marketplace/actions/steam-deploy
