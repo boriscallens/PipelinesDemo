@@ -10,7 +10,7 @@ on:
 # If new pushes happen on this feature branch before build is done:
 # cancel the old one and start the new one instead
 concurrency:
-  group: ${{ github.GITHUB_REF }}
+  group: ${{ github.ref }}-${{ github.action }}
   cancel-in-progress: true
 
 jobs:
