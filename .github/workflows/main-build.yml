@@ -1,0 +1,148 @@
+# Test on merges to main
+# When tests succeeds: increments the tag
+# If a tag was used, push to the relevant channels
+name: main
+
+on:
+  push:
+    branches:
+      - main
+  workflow_call: {}
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    # outputs:
+    #   tag-version: ${{ steps.version-tag.outputs.new_tag }}
+
+    steps:
+      # Checkout (without LFS)
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: '0'
+
+      # Git LFS
+      - name: Create LFS file list
+        run: git lfs ls-files -l | cut -d' ' -f1 | sort > .lfs-assets-id
+
+      - name: Restore LFS cache
+        uses: actions/cache@v2
+        id: lfs-cache
+        with:
+          path: .git/lfs
+          key: ${{ runner.os }}-lfs-${{ hashFiles('.lfs-assets-id') }}
+
+      - name: Git LFS Pull
+        run: |
+          git lfs pull
+          git add .
+          git reset --hard
+
+      # Cache
+      - uses: actions/cache@v2
+        with:
+          path: Library
+          key: Library-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          restore-keys: |
+            Library-
+
+      # Test
+      - name: Run tests
+        uses: game-ci/unity-test-runner@v2
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        with:
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+
+      # # Tag
+      # - name: Bump version and push pre-release tag
+      #   id: version-tag
+      #   uses: anothrNick/github-tag-action@1.36.0
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     WITH_V: true
+      #     RELEASE_BRANCHES: "none" # automatic branches should be pre-release. Releases will be made intentionally.
+      #     DEFAULT_BUMP: patch
+      #     PRERELEASE_SUFFIX: "alpha"
+
+  build:
+    name: Build on all supported platforms
+    runs-on: ubuntu-latest
+    needs: test
+    strategy:
+          fail-fast: false
+          matrix:
+            targetPlatform:
+              - StandaloneOSX # Build a macOS standalone (Intel 64-bit).
+              - StandaloneWindows # Build a Windows standalone.
+              - StandaloneWindows64 # Build a Windows 64-bit standalone.
+              - StandaloneLinux64 # Build a Linux 64-bit standalone.
+              - iOS # Build an iOS player.
+              - Android # Build an Android .apk standalone app.
+              - WebGL # WebGL.
+    steps:
+      # Checkout (without LFS)
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        # with:
+        #   ref: 'tags/${{ needs.testAndTag.outputs.tag-version }}'
+
+      # Git LFS
+      - name: Create LFS file list
+        run: git lfs ls-files -l | cut -d' ' -f1 | sort > .lfs-assets-id
+
+      - name: Restore LFS cache
+        uses: actions/cache@v2
+        id: lfs-cache
+        with:
+          path: .git/lfs
+          key: ${{ runner.os }}-lfs-${{ hashFiles('.lfs-assets-id') }}
+
+      - name: Git LFS Pull
+        run: |
+          git lfs pull
+          git add .
+          git reset --hard
+
+      # Cache
+      - uses: actions/cache@v2
+        with:
+          path: Library
+          key: Library-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          restore-keys: |
+            Library-
+
+      # Build
+      - name: Build project
+        uses: game-ci/unity-builder@v2
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        with:
+          targetPlatform: ${{ matrix.targetPlatform }}
+          versioning: Semantic
+
+      # Output
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Pipelines-${{ matrix.targetPlatform }}
+          path: build/${{ github.sha }}/${{ matrix.targetPlatform }}
+
+  release:
+    name: prepare pre-release
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+
+    - name: Create pre-release
+      uses: CupOfTea696/gh-action-auto-release@v1.0.2
+      with:
+          title: "Release: $version"
+          tag: "v$semver"
+          draft: true
+          regex: "/^Release: #{semver}$/i"
+      env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
