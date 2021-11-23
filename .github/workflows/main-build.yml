@@ -7,6 +7,8 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - README.md
   workflow_call: {}
 
 jobs:
@@ -68,7 +70,7 @@ jobs:
       #     PRERELEASE_SUFFIX: "alpha"
 
   build:
-    name: Build on all supported platforms
+    name: Build
     runs-on: ubuntu-latest
     needs: test
     strategy:
@@ -124,10 +126,13 @@ jobs:
           versioning: Semantic
 
       # Output
-      - uses: actions/upload-artifact@v2
+      - name: Append build result to artifact
+        uses: actions/upload-artifact@v2
         with:
-          name: Pipelines-${{ matrix.targetPlatform }}
-          path: build/${{ github.sha }}/${{ matrix.targetPlatform }}
+          name: Pipeline-${{ github.sha }}
+          path: build
+          if-no-files-found: error
+
 
   release:
     name: prepare pre-release
@@ -135,14 +140,17 @@ jobs:
     needs: build
     steps:
 
-    - name: Create pre-release
-      uses: CupOfTea696/gh-action-auto-release@v1.0.2
+    - name: Retrieve all build results from artifact
+      uses: actions/download-artifact@v2
       with:
-          title: "Release: $version"
-          tag: "v$semver"
-          draft: true
-          regex: "/^Release: #{semver}$/i"
-      env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        name: Pipeline-${{ github.sha }}
+        path: bin
 
+    - uses: "marvinpinto/action-automatic-releases@latest"
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        automatic_release_tag: "latest"
+        prerelease: true
+        title: "Development Build"
+        files: bin/
 
