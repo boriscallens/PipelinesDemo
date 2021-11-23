@@ -125,17 +125,22 @@ jobs:
           targetPlatform: ${{ matrix.targetPlatform }}
           versioning: Semantic
 
+      # Zip
+      - name: Zip build output
+        uses: montudor/action-zip@v1
+        with:
+          args: zip -qq -r ${{ matrix.targetPlatform }}.zip build/${{ matrix.targetPlatform }}
+
       # Output
       - name: Append build result to artifact
         uses: actions/upload-artifact@v2
         with:
           name: Pipeline-${{ github.sha }}
-          path: build
+          path: ${{ matrix.targetPlatform }}.zip
           if-no-files-found: error
 
-
   release:
-    name: prepare pre-release
+    name: Prepare pre-release
     runs-on: ubuntu-latest
     needs: build
     steps:
@@ -146,7 +151,8 @@ jobs:
         name: Pipeline-${{ github.sha }}
         path: bin
 
-    - uses: "marvinpinto/action-automatic-releases@latest"
+    - name: Replace latest pre-release
+      uses: "marvinpinto/action-automatic-releases@latest"
       with:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
         automatic_release_tag: "latest"
