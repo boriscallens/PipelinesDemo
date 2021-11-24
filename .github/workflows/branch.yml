@@ -5,6 +5,9 @@ on:
   push:
     branches-ignore:
       - main
+    paths-ignore:
+      - README.md
+      - "main-build.yml"
   workflow_call: {}
 
 # If new pushes happen on this feature branch before build is done:

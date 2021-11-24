@@ -9,6 +9,7 @@ on:
       - main
     paths-ignore:
       - README.md
+      - branch.yml
   workflow_call: {}
 
 jobs:
@@ -167,7 +168,7 @@ jobs:
         uses: robpc/itchio-upload-action@v1
         with:
           path: bin/WebGL/
-          project: ${{ boersnoes/pipelines }}
-          channel: ${{ html5-alpha }}
+          project: boersnoes/pipelines
+          channel: html5-alpha
           version: ${{ needs.build.outputs.version }}
           api-key: ${{ secrets.ITCHIO_API_KEY }}
