@@ -130,11 +130,21 @@ jobs:
           buildName: Pipelines-${{ matrix.targetPlatform }}
           versioning: Semantic
 
+      - name: List build
+        uses: enricomarino/actions@v2
+        with:
+          source: build/
+
+      - name: List ${{ matrix.targetPlatform }}
+        uses: enricomarino/actions@v2
+        with:
+          source: build/${{ matrix.targetPlatform }}
+
       # Zip
       - name: Zip build output
         uses: montudor/action-zip@v1
         with:
-          args: zip -qq -r Pipelines-${{ matrix.targetPlatform }}-${{ steps.buildStep.outputs.buildVersion }}.zip build/${{ matrix.targetPlatform }}/build/${{ matrix.targetPlatform }}
+          args: zip -qq -r Pipelines-${{ matrix.targetPlatform }}-${{ steps.buildStep.outputs.buildVersion }}.zip build/${{ matrix.targetPlatform }}
 
       # Output
       - name: Append build result to artifact
