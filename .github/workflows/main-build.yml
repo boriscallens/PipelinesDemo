@@ -23,7 +23,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
         with:
-          fetch-depth: '0'
+          fetch-depth: "0"
 
       # Git LFS
       - name: Create LFS file list
@@ -73,17 +73,19 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     needs: test
+    outputs:
+      version: ${{ steps.buildStep.outputs.buildVersion }}
     strategy:
-          fail-fast: false
-          matrix:
-            targetPlatform:
-              - StandaloneOSX # Build a macOS standalone (Intel 64-bit).
-              - StandaloneWindows # Build a Windows standalone.
-              - StandaloneWindows64 # Build a Windows 64-bit standalone.
-              - StandaloneLinux64 # Build a Linux 64-bit standalone.
-              - iOS # Build an iOS player.
-              - Android # Build an Android .apk standalone app.
-              - WebGL # WebGL.
+      fail-fast: false
+      matrix:
+        targetPlatform:
+          - StandaloneOSX # Build a macOS standalone (Intel 64-bit).
+          - StandaloneWindows # Build a Windows standalone.
+          - StandaloneWindows64 # Build a Windows 64-bit standalone.
+          - StandaloneLinux64 # Build a Linux 64-bit standalone.
+          - iOS # Build an iOS player.
+          - Android # Build an Android .apk standalone app.
+          - WebGL # WebGL.
     steps:
       # Checkout (without LFS)
       - name: Checkout repository
@@ -127,7 +129,6 @@ jobs:
           buildName: Pipelines-${{ matrix.targetPlatform }}
           versioning: Semantic
 
-
       # Zip
       - name: Zip build output
         uses: montudor/action-zip@v1
@@ -147,19 +148,26 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
+      - name: Retrieve all build results from artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: Pipeline-${{ github.sha }}
+          path: bin
 
-    - name: Retrieve all build results from artifact
-      uses: actions/download-artifact@v2
-      with:
-        name: Pipeline-${{ github.sha }}
-        path: bin
+      - name: Replace latest pre-release
+        uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "latest"
+          prerelease: true
+          title: "Development Build"
+          files: bin/
 
-    - name: Replace latest pre-release
-      uses: "marvinpinto/action-automatic-releases@latest"
-      with:
-        repo_token: "${{ secrets.GITHUB_TOKEN }}"
-        automatic_release_tag: "latest"
-        prerelease: true
-        title: "Development Build"
-        files: bin/
-
+      - name: Upload webgl to itch.io
+        uses: robpc/itchio-upload-action@v1
+        with:
+          path: bin/WebGL/
+          project: ${{ boersnoes/pipelines }}
+          channel: ${{ html5-alpha }}
+          version: ${{ needs.build.outputs.version }}
+          api-key: ${{ secrets.ITCHIO_API_KEY }}
