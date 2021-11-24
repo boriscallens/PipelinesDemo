@@ -118,18 +118,21 @@ jobs:
 
       # Build
       - name: Build project
+        id: buildStep
         uses: game-ci/unity-builder@v2
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
         with:
           targetPlatform: ${{ matrix.targetPlatform }}
+          buildName: Pipelines-${{ matrix.targetPlatform }}
           versioning: Semantic
+
 
       # Zip
       - name: Zip build output
         uses: montudor/action-zip@v1
         with:
-          args: zip -qq -r ${{ matrix.targetPlatform }}.zip build/${{ matrix.targetPlatform }}
+          args: zip -qq -r Pipelines-${{ matrix.targetPlatform }}-${{ steps.buildStep.outputs.buildVersion }}.zip build/${{ matrix.targetPlatform }}/build/${{ matrix.targetPlatform }}
 
       # Output
       - name: Append build result to artifact
