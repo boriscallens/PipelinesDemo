@@ -130,6 +130,9 @@ jobs:
           buildName: Pipelines-${{ matrix.targetPlatform }}
           versioning: Semantic
 
+      - name: List root
+        uses: enricomarino/actions@v2
+
       - name: List build
         uses: enricomarino/actions@v2
         with:
@@ -138,7 +141,7 @@ jobs:
       - name: List ${{ matrix.targetPlatform }}
         uses: enricomarino/actions@v2
         with:
-          source: build/${{ matrix.targetPlatform }}
+          source: build/${{ matrix.targetPlatform }}/
 
       # Zip
       - name: Zip build output
@@ -151,7 +154,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: Pipeline-${{ github.sha }}
-          path: ${{ matrix.targetPlatform }}.zip
+          path: Pipelines-${{ matrix.targetPlatform }}-${{ steps.buildStep.outputs.buildVersion }}.zip
           if-no-files-found: error
 
   release:
