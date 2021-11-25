@@ -171,7 +171,7 @@ jobs:
       - name: Upload webgl to itch.io
         uses: robpc/itchio-upload-action@v1
         with:
-          path: bin/Pipelines-WebGL-${{ steps.buildStep.outputs.buildVersion }}.zip
+          path: bin/Pipelines-WebGL-${{ needs.build.outputs.buildVersion }}.zip
           project: boersnoes/pipelines
           channel: html5-alpha
           version: ${{ needs.build.outputs.version }}
