@@ -131,14 +131,14 @@ jobs:
           versioning: Semantic
 
       # Output entire workspace file layout
-      - name: List workspace files
-        run: ls -R build
+      - name: List files to be zipped
+        run: ls -R build/${{ matrix.targetPlatform }}/Pipelines-${{ matrix.targetPlatform }}/
 
       # Zip
       - name: Zip build output
         uses: montudor/action-zip@v1
         with:
-          args: zip -qq -r Pipelines-${{ matrix.targetPlatform }}-${{ steps.buildStep.outputs.buildVersion }}.zip build/${{ matrix.targetPlatform }}/Pipelines-${{ matrix.targetPlatform }}/*
+          args: zip -qq -r Pipelines-${{ matrix.targetPlatform }}-${{ steps.buildStep.outputs.buildVersion }}.zip build/${{ matrix.targetPlatform }}/Pipelines-${{ matrix.targetPlatform }}/
 
       # Output
       - name: Append build result to artifact
