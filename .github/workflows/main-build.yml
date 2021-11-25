@@ -80,12 +80,12 @@ jobs:
       fail-fast: false
       matrix:
         targetPlatform:
-          - StandaloneOSX # Build a macOS standalone (Intel 64-bit).
-          - StandaloneWindows # Build a Windows standalone.
-          - StandaloneWindows64 # Build a Windows 64-bit standalone.
-          - StandaloneLinux64 # Build a Linux 64-bit standalone.
-          - iOS # Build an iOS player.
-          - Android # Build an Android .apk standalone app.
+          # - StandaloneOSX # Build a macOS standalone (Intel 64-bit).
+          # - StandaloneWindows # Build a Windows standalone.
+          # - StandaloneWindows64 # Build a Windows 64-bit standalone.
+          # - StandaloneLinux64 # Build a Linux 64-bit standalone.
+          # - iOS # Build an iOS player.
+          # - Android # Build an Android .apk standalone app.
           - WebGL # WebGL.
     steps:
       # Checkout (without LFS)
@@ -129,6 +129,10 @@ jobs:
           targetPlatform: ${{ matrix.targetPlatform }}
           buildName: Pipelines-${{ matrix.targetPlatform }}
           versioning: Semantic
+
+      # Output entire workspace file layout
+      - name: List workspace files
+        run: ls -R build
 
       # Zip
       - name: Zip build output
