@@ -130,24 +130,11 @@ jobs:
           buildName: Pipelines-${{ matrix.targetPlatform }}
           versioning: Semantic
 
-      - name: List root
-        uses: enricomarino/actions@v2
-
-      - name: List build
-        uses: enricomarino/actions@v2
-        with:
-          source: build/
-
-      - name: List ${{ matrix.targetPlatform }}
-        uses: enricomarino/actions@v2
-        with:
-          source: build/${{ matrix.targetPlatform }}/
-
       # Zip
       - name: Zip build output
         uses: montudor/action-zip@v1
         with:
-          args: zip -qq -r Pipelines-${{ matrix.targetPlatform }}-${{ steps.buildStep.outputs.buildVersion }}.zip build/${{ matrix.targetPlatform }}
+          args: zip -qq -r Pipelines-${{ matrix.targetPlatform }}-${{ steps.buildStep.outputs.buildVersion }}.zip build/${{ matrix.targetPlatform }}/Pipelines-${{ matrix.targetPlatform }}/*
 
       # Output
       - name: Append build result to artifact
@@ -180,7 +167,7 @@ jobs:
       - name: Upload webgl to itch.io
         uses: robpc/itchio-upload-action@v1
         with:
-          path: bin/WebGL/
+          path: bin/Pipelines-WebGL-${{ steps.buildStep.outputs.buildVersion }}.zip
           project: boersnoes/pipelines
           channel: html5-alpha
           version: ${{ needs.build.outputs.version }}
