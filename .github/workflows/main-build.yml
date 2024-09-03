@@ -154,7 +154,7 @@ jobs:
     needs: build
     steps:
       - name: Retrieve all build results from artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4.1.7
         with:
           name: Pipeline-${{ github.sha }}
           path: bin
